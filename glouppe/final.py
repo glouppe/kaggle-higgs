@@ -4,12 +4,10 @@ import numpy as np
 
 from sklearn.ensemble import GradientBoostingClassifier
 
+from utils import load_train
 from utils import make_submission
 from utils import rescale, rebalance
 from xg import XGBoostClassifier
-
-from sklearn.externals.joblib import Parallel, delayed
-n_jobs = 24
 
 # Load training data
 X, y, w, _ = load_train()
@@ -23,17 +21,23 @@ X, y, w, _ = load_train()
 #          "max_features": 20,
 #          "min_samples_leaf": 44}
 
-Classifier = XGBoostClassifier
-params = {"n_estimators": 490,
-          "eta": 0.1,
-          "max_depth": 6,
-          "scale_pos_weight": 1.0,
-          "subsample": 1.0}
+#Classifier = XGBoostClassifier
+#params = {"n_estimators": 490,
+#          "eta": 0.1,
+#          "max_depth": 6,
+#          "scale_pos_weight": 1.0,
+#          "subsample": 1.0}
+
+from functools import partial
+from sklearn.ensemble import BaggingClassifier
+Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=490, eta=0.1, max_depth=6, n_jobs=24))
+params = {"n_estimators": 10, "n_jobs": 1, "bootstrap": False, "max_features": 28}
+
 
 # Train on the whole training set
-def _parallel_train(Classifier, params, X, y, w, i, verbose=1):
+def train(Classifier, params, X, y, w, verbose=1):
     if verbose > 0:
-        print "[Start]", i
+        print "[Start]"
 
     w = rescale(w)
     w = rebalance(y, w)
@@ -48,31 +52,18 @@ def _parallel_train(Classifier, params, X, y, w, i, verbose=1):
     clf.fit(X, y, sample_weight=w)
 
     if verbose > 0:
-        print "[End]", i
+        print "[End]"
 
     return clf
 
-all_clf = []
-n_models = 20 # Average several models to reduce variance
-
-for i in range(n_models):
-    all_clf.append(_parallel_train(Classifier, params, X, y, w, i))
-
-#all_clf = Parallel(n_jobs=n_jobs, verbose=3)(
-#    delayed(_parallel_train)(
-#        Classifier,
-#        params,
-#        X,
-#        y,
-#        w,
-#        i)
-#    for i in range(n_models))
+clf = train(Classifier, params, X, y, w)
 
 X = None
 y = None
 gc.collect()
 
 # Make submission
-#make_submission(all_clf, -2.825, "output-2.825.csv")
+threshold = -2.64604409536
+make_submission(clf, threshold, "output-rs.csv")
 
 import IPython; IPython.embed()

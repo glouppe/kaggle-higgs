@@ -28,15 +28,21 @@ X, y, w, _ = load_train()
 #                      "subsample": [1.0],
 #                      "max_depth": [6]})
 
-Classifier = ExtraTreesClassifier
-grid = ParameterGrid({"n_estimators": [500],
-                      "max_features": [15, 20]})
+from functools import partial
+from sklearn.ensemble import BaggingClassifier
+Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=490, eta=0.1, max_depth=6, n_jobs=24))
+grid = ParameterGrid({"n_estimators": [10], "n_jobs": [1], "bootstrap": [False], "max_features": [30, 28, 26]}) 
+
+#Classifier = ExtraTreesClassifier
+#grid = ParameterGrid({"n_estimators": [500],
+#                      "max_features": [15, 20],
+#                      "n_jobs": [12]})
 
 
 from sklearn.externals.joblib import Parallel, delayed
-n_jobs = 24
+n_jobs = 1
 
-def _parallel_eval(Classifier, params, X, y, w, n_repeat=5, verbose=1):
+def _parallel_eval(Classifier, params, X, y, w, n_repeat=3, verbose=1):
     if verbose > 0:
         print "[Start]", params
 
