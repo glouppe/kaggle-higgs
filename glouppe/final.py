@@ -43,12 +43,6 @@ def train(Classifier, params, X, y, w, verbose=1):
     w = rebalance(y, w)
 
     clf = Classifier(**params)
-
-    try:
-        clf.set_params(random_state=i)
-    except:
-        pass
-
     clf.fit(X, y, sample_weight=w)
 
     if verbose > 0:
@@ -57,10 +51,6 @@ def train(Classifier, params, X, y, w, verbose=1):
     return clf
 
 clf = train(Classifier, params, X, y, w)
-
-X = None
-y = None
-gc.collect()
 
 # Make submission
 threshold = -2.64604409536
