@@ -17,33 +17,36 @@ X, y, w, _ = load_train()
 # Look for the best model
 print "Optimize parameters in 5-CV..."
 
-
 # from sklearn.ensemble import GradientBoostingClassifier
-#Classifier = GradientBoostingClassifier
-#grid = ParameterGrid({"n_estimators": [500],
-#                      "learning_rate": [0.1],
-#                      "max_depth": [6],
-#                      "max_features": [None],
-#                      "min_samples_leaf": [1]})
+# Classifier = GradientBoostingClassifier
+# grid = ParameterGrid({"n_estimators": [500],
+#                       "learning_rate": [0.1],
+#                       "max_depth": [6],
+#                       "max_features": [None],
+#                       "min_samples_leaf": [1]})
 
 # from xg import XGBoostClassifier
-#Classifier = XGBoostClassifier
-#grid = ParameterGrid({"n_estimators": [490],
-#                      "eta": [0.1],
-#                      "subsample": [1.0],
-#                      "max_depth": [6]})
+# Classifier = XGBoostClassifier
+# grid = ParameterGrid({"n_estimators": [490],
+#                       "eta": [0.1],
+#                       "subsample": [1.0],
+#                       "max_depth": [6]})
 
 prefix = "bagging-xgb"
 from sklearn.ensemble import BaggingClassifier
 from xg import XGBoostClassifier
 Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=500, eta=0.1, max_depth=6, n_jobs=24))
-grid = ParameterGrid({"n_estimators": [20], "n_jobs": [1], "bootstrap": [False], "max_features": [27]})
+grid = ParameterGrid({"n_estimators": [20],
+                      "n_jobs": [1],
+                      "bootstrap": [False],
+                      "max_features": [27]})
 
+# prefix = "extra-trees"
 # from sklearn.ensemble import ExtraTreesClassifier
-#Classifier = ExtraTreesClassifier
-#grid = ParameterGrid({"n_estimators": [500],
-#                      "max_features": [15, 20],
-#                      "n_jobs": [12]})
+# Classifier = ExtraTreesClassifier
+# grid = ParameterGrid({"n_estimators": [500],
+#                       "max_features": [15, 20],
+#                       "n_jobs": [12]})
 
 
 n_jobs = 1
