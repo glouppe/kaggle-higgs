@@ -55,21 +55,16 @@ def ams(s, b, br=10):
 def find_threshold(clf, X, y, sample_weight):
     d = np.zeros(len(X))
 
-    if not isinstance(clf, list):
-        clf = [clf]
-
-    for c in clf:
-        try:
-            d += -c.decision_function(X)[:, 0]
-        except:
-            d += c.predict_proba(X)[:, 0]
+    try:
+        d += -clf.decision_function(X)[:, 0]
+    except:
+        d += clf.predict_proba(X)[:, 0]
 
     d /= len(clf)
 
     sample_weight = rescale(sample_weight)
     best_score = -np.inf
     best_threshold = 0
-    best_weight = 0.0
 
     indices = np.argsort(d)
     s = 0.0
@@ -89,9 +84,8 @@ def find_threshold(clf, X, y, sample_weight):
             threshold = (d[i] + d[j]) / 2.0
             best_score = score
             best_threshold = threshold
-            best_weight = s + b
 
-    return best_threshold, best_score, best_weight
+    return best_threshold, best_score, d
 
 
 # Submit
@@ -100,14 +94,10 @@ def make_submission(clf, threshold, output):
     X_test, _, _, ids = load_test()
     d = np.zeros(len(X_test))
 
-    if not isinstance(clf, list):
-        clf = [clf]
-
-    for c in clf:
-        try:
-            d += -c.decision_function(X_test)[:, 0]
-        except:
-            d += c.predict_proba(X_test)[:, 0]
+    try:
+        d += -clf.decision_function(X_test)[:, 0]
+    except:
+        d += clf.predict_proba(X_test)[:, 0]
 
     d /= len(clf)
 
