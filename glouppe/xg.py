@@ -3,15 +3,9 @@ import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_random_state
 
-import inspect
-import os
 import sys
 #sys.path.append("/home/gilles/Sources/xgboost/python/")
-#sys.path.append("/home/glouppe/src/xgboost/python/")
-code_path = os.path.join(
-    os.path.split(inspect.getfile(inspect.currentframe()))[0], "/Users/abhishek/Documents/higgs/xgboost-master/python/")
-
-sys.path.append(code_path)
+sys.path.append("/home/glouppe/src/xgboost/python/")
 import xgboost as xgb
 
 
@@ -46,7 +40,7 @@ class XGBoostClassifier(BaseEstimator, ClassifierMixin):
         params["bst:min_child_weight"] = self.min_child_weight
         params["bst:subsample"] = self.subsample
         params["scale_pos_weight"] = self.scale_pos_weight
-        params['silent'] = 10
+        params['silent'] = 1
         params['nthread'] = self.n_jobs
         params['seed'] = random_state.randint(999999999)
 

@@ -3,31 +3,24 @@ import numpy as np
 import itertools
 
 from sklearn.cross_validation import train_test_split
-from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier, ExtraTreesClassifier
 from sklearn.grid_search import ParameterGrid
 
-from utils import load_train, load_blend_train
+from utils import load_train
 from utils import find_threshold
 from utils import rescale, rebalance
 from xg import XGBoostClassifier
 
-from gbm_sw import GradientBoostingClassifier
-
-
-from functools import partial
-from sklearn.ensemble import BaggingClassifier
 # Load training data
-X, y, w, _ = load_blend_train()
+X, y, w, _ = load_train()
 
 # Look for the best model
-Classifier = GradientBoostingClassifier
-#Classifier = partial(BaggingClassifier, base_estimator=GradientBoostingClassifier(n_estimators = 100, max_depth = 3, verbose = 2))
-grid = ParameterGrid({"n_estimators": [200],
-                       "learning_rate": [0.05],
-                       "max_depth": [3],
-                       "max_features": [20],
-                       "min_samples_leaf": [50],
-                       "verbose": [2]})
+#Classifier = GradientBoostingClassifier
+#grid = ParameterGrid({"n_estimators": [500],
+#                      "learning_rate": [0.1],
+#                      "max_depth": [6],
+#                      "max_features": [None],
+#                      "min_samples_leaf": [1]})
 
 #Classifier = XGBoostClassifier
 #grid = ParameterGrid({"n_estimators": [490],
@@ -35,28 +28,25 @@ grid = ParameterGrid({"n_estimators": [200],
 #                      "subsample": [1.0],
 #                      "max_depth": [6]})
 
+from functools import partial
+from sklearn.ensemble import BaggingClassifier
+Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=490, eta=0.1, max_depth=6, n_jobs=24))
+grid = ParameterGrid({"n_estimators": [20], "n_jobs": [1], "bootstrap": [False], "max_features": [27, 28, 29]}) 
 
-# Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=10, eta=0.1, max_depth=6, n_jobs=24))
-# grid = ParameterGrid({"n_estimators": [10], "n_jobs": [1], "bootstrap": [False], "max_features": [7]}) 
-
-
-
-
-# Classifier = RandomForestClassifier
-# grid = ParameterGrid({"n_estimators": [10],
-#                       "max_features": [15, 20, 25, 30, 35, 40],
-#                       "n_jobs": [-1],
-#                       "verbose": [2]})
+#Classifier = ExtraTreesClassifier
+#grid = ParameterGrid({"n_estimators": [500],
+#                      "max_features": [15, 20],
+#                      "n_jobs": [12]})
 
 
 from sklearn.externals.joblib import Parallel, delayed
 n_jobs = 1
 
-def _parallel_eval(Classifier, params, X, y, w, n_repeat=1, verbose=1):
+def _parallel_eval(Classifier, params, X, y, w, n_repeat=5, verbose=1):
     if verbose > 0:
         print "[Start]", params
 
-    thresholds, scores = [], []
+    thresholds, scores, weights = [], [], []
 
     for i in range(n_repeat):
         if verbose > 0:
@@ -70,15 +60,16 @@ def _parallel_eval(Classifier, params, X, y, w, n_repeat=1, verbose=1):
 
         clf = Classifier(**params)
         clf = clf.fit(X_train, y_train, sample_weight=w_train)
-        threshold, score = find_threshold(clf, X_valid, y_valid, w_valid)
+        threshold, score, weight = find_threshold(clf, X_valid, y_valid, w_valid)
 
         thresholds.append(threshold)
         scores.append(score)
+        weights.append(weight)
 
     if verbose > 0:
-        print "[End]", params, np.mean(thresholds), np.mean(scores)
+        print "[End]", params, np.mean(thresholds), np.mean(scores), np.mean(weights)
 
-    return (np.mean(scores), np.mean(thresholds), params, scores, thresholds)
+    return (np.mean(scores), np.mean(thresholds), params, scores, thresholds, weights)
 
 all_results = Parallel(n_jobs=n_jobs, verbose=3)(
     delayed(_parallel_eval)(

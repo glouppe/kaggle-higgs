@@ -1,4 +1,3 @@
-import cPickle
 import pandas as pd
 import numpy as np
 
@@ -6,32 +5,7 @@ from sklearn.utils import safe_asarray, check_random_state
 
 # Loaders
 
-def load_blend_train(filename="../data/training.csv"):
-    dataset_blend_train = cPickle.load(open('../data/dataset_blend_train_76.pkl', 'rb'))
-    data = pd.read_csv(filename)
-    X = data.values[:, 1:-2]
-
-    y = data.Label.values
-    y_ = np.zeros(len(X))
-    y_[y == 's'] = 1.0
-    y = y_
-
-    sample_weight = data.Weight.values
-    ids = data.EventId
-
-    return dataset_blend_train, y, sample_weight, ids
-
-def load_blend_test(filename="../data/test.csv"):
-    dataset_blend_test = cPickle.load(open('../data/dataset_blend_test_76.pkl', 'rb'))
-    data = pd.read_csv(filename)
-    X = data.values[:, 1:]
-    y = None
-    sample_weight = np.ones(len(X))
-    ids = data.EventId
-
-    return dataset_blend_test, y, sample_weight, ids
-
-def load_train(filename="../data/training.csv"):
+def load_train(filename="data/training.csv"):
     data = pd.read_csv(filename)
     X = data.values[:, 1:-2]
 
@@ -45,7 +19,7 @@ def load_train(filename="../data/training.csv"):
 
     return X, y, sample_weight, ids
 
-def load_test(filename="../data/test.csv"):
+def load_test(filename="data/test.csv"):
     data = pd.read_csv(filename)
     X = data.values[:, 1:]
     y = None
@@ -85,9 +59,9 @@ def find_threshold(clf, X, y, sample_weight):
         clf = [clf]
 
     for c in clf:
-        if hasattr(c, "decision_function"):
+        try:
             d += -c.decision_function(X)[:, 0]
-        else:
+        except:
             d += c.predict_proba(X)[:, 0]
 
     d /= len(clf)
@@ -95,6 +69,7 @@ def find_threshold(clf, X, y, sample_weight):
     sample_weight = rescale(sample_weight)
     best_score = -np.inf
     best_threshold = 0
+    best_weight = 0.0
 
     indices = np.argsort(d)
     s = 0.0
@@ -114,23 +89,24 @@ def find_threshold(clf, X, y, sample_weight):
             threshold = (d[i] + d[j]) / 2.0
             best_score = score
             best_threshold = threshold
+            best_weight = s + b
 
-    return best_threshold, best_score
+    return best_threshold, best_score, best_weight
 
 
 # Submit
 
 def make_submission(clf, threshold, output):
-    X_test, _, _, ids = load_blend_test()
+    X_test, _, _, ids = load_test()
     d = np.zeros(len(X_test))
 
     if not isinstance(clf, list):
         clf = [clf]
 
     for c in clf:
-        if hasattr(c, "decision_function"):
+        try:
             d += -c.decision_function(X_test)[:, 0]
-        else:
+        except:
             d += c.predict_proba(X_test)[:, 0]
 
     d /= len(clf)
