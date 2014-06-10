@@ -17,7 +17,8 @@ X, y, w, _ = load_train()
 # Look for the best model
 print "Optimize parameters in 5-CV..."
 
-# from sklearn.ensemble import GradientBoostingClassifier
+#prefix = "gbrt"
+#from sklearn.ensemble import GradientBoostingClassifier
 #Classifier = GradientBoostingClassifier
 #grid = ParameterGrid({"n_estimators": [500],
 #                      "learning_rate": [0.1],
@@ -25,10 +26,12 @@ print "Optimize parameters in 5-CV..."
 #                      "max_features": [None],
 #                      "min_samples_leaf": [1]})
 
-# from xg import XGBoostClassifier
+#prefix = "xgb"
+#from xg import XGBoostClassifier
 #Classifier = XGBoostClassifier
 #grid = ParameterGrid({"n_estimators": [490],
 #                      "eta": [0.1],
+#                      "n_jobs": [20],
 #                      "subsample": [1.0],
 #                      "max_depth": [6]})
 
@@ -38,12 +41,24 @@ print "Optimize parameters in 5-CV..."
 # Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=500, eta=0.1, max_depth=6, n_jobs=24))
 # grid = ParameterGrid({"n_estimators": [20], "n_jobs": [1], "bootstrap": [False], "max_features": [27]})
 
-prefix = "random-forest"
-from sklearn.ensemble import RandomForestClassifier
-Classifier = RandomForestClassifier
-grid = ParameterGrid({"n_estimators": [500],
-                      "max_features": [10, 15, 20, 25, 30],
-                      "n_jobs": [24]})
+#prefix = "random-forest"
+#from sklearn.ensemble import RandomForestClassifier
+#Classifier = RandomForestClassifier
+#grid = ParameterGrid({"n_estimators": [500],
+#                      "max_features": [10, 15, 20, 25, 30],
+#                      "n_jobs": [24]})
+
+from sklearn.preprocessing import scale
+X = scale(X.astype(np.float32))
+
+prefix = "sgd"
+from sklearn.ensemble import BaggingClassifier
+from sklearn.linear_model import SGDClassifier
+Classifier = partial(BaggingClassifier, base_estimator=SGDClassifier(n_iter=30, alpha=0.05))
+#grid = ParameterGrid({"penalty": ["l1", "l2"], "n_iter": [30, 50], "alpha": [0.01, 0.05, 0.1]})
+grid = ParameterGrid({"n_estimators": [20], "n_jobs": [20], "bootstrap": [False, True], "max_features": [25, 27, 30]})
+
+
 
 n_jobs = 1
 
@@ -119,10 +134,12 @@ except:
 print "Save test predictions for stacking..."
 
 X_test, _, _, ids = load_test()
+X_test = scale(X_test.astype(np.float32))
 
 try:
-    d = -clf.decision_function(X_test)[:, 0]
+    d = -clf.decision_function(X_test)
 except:
     d = clf.predict_proba(X_test)[:, 0]
 
+d = d.flatten()
 np.save("stack/%s-test.npy" % prefix, d)

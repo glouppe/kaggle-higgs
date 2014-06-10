@@ -23,10 +23,10 @@ print "Optimize parameters in 5-CV..."
 
 from sklearn.ensemble import GradientBoostingClassifier
 Classifier = GradientBoostingClassifier
-grid = ParameterGrid({"n_estimators": [100],
-                     "learning_rate": [0.1],
-                     "max_depth": [3, 4, 5, 6],
-                     "max_features": [None],
+grid = ParameterGrid({"n_estimators": [300],
+                     "learning_rate": [0.05, 0.04, 0.03],
+                     "max_depth": [1, 2, 3],
+                     "max_features": [0.3, 0.6, 1.0],
                      "min_samples_leaf": [1]})
 
 
