@@ -18,36 +18,32 @@ X, y, w, _ = load_train()
 print "Optimize parameters in 5-CV..."
 
 # from sklearn.ensemble import GradientBoostingClassifier
-# Classifier = GradientBoostingClassifier
-# grid = ParameterGrid({"n_estimators": [500],
-#                       "learning_rate": [0.1],
-#                       "max_depth": [6],
-#                       "max_features": [None],
-#                       "min_samples_leaf": [1]})
+#Classifier = GradientBoostingClassifier
+#grid = ParameterGrid({"n_estimators": [500],
+#                      "learning_rate": [0.1],
+#                      "max_depth": [6],
+#                      "max_features": [None],
+#                      "min_samples_leaf": [1]})
 
 # from xg import XGBoostClassifier
-# Classifier = XGBoostClassifier
-# grid = ParameterGrid({"n_estimators": [490],
-#                       "eta": [0.1],
-#                       "subsample": [1.0],
-#                       "max_depth": [6]})
+#Classifier = XGBoostClassifier
+#grid = ParameterGrid({"n_estimators": [490],
+#                      "eta": [0.1],
+#                      "subsample": [1.0],
+#                      "max_depth": [6]})
 
-prefix = "bagging-xgb"
-from sklearn.ensemble import BaggingClassifier
-from xg import XGBoostClassifier
-Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=500, eta=0.1, max_depth=6, n_jobs=24))
-grid = ParameterGrid({"n_estimators": [20],
-                      "n_jobs": [1],
-                      "bootstrap": [False],
-                      "max_features": [27]})
+# prefix = "bagging-xgb"
+# from sklearn.ensemble import BaggingClassifier
+# from xg import XGBoostClassifier
+# Classifier = partial(BaggingClassifier, base_estimator=XGBoostClassifier(n_estimators=500, eta=0.1, max_depth=6, n_jobs=24))
+# grid = ParameterGrid({"n_estimators": [20], "n_jobs": [1], "bootstrap": [False], "max_features": [27]})
 
-# prefix = "extra-trees"
-# from sklearn.ensemble import ExtraTreesClassifier
-# Classifier = ExtraTreesClassifier
-# grid = ParameterGrid({"n_estimators": [500],
-#                       "max_features": [15, 20],
-#                       "n_jobs": [12]})
-
+prefix = "random-forest"
+from sklearn.ensemble import RandomForestClassifier
+Classifier = RandomForestClassifier
+grid = ParameterGrid({"n_estimators": [500],
+                      "max_features": [10, 15, 20, 25, 30],
+                      "n_jobs": [24]})
 
 n_jobs = 1
 
@@ -83,7 +79,6 @@ def _parallel_eval(Classifier, params, X, y, w, n_repeat=5, verbose=1):
         print "[End]", params, np.mean(thresholds), np.mean(scores)
 
     return (np.mean(scores), np.mean(thresholds), params, thresholds, scores, decisions)
-
 
 all_results = Parallel(n_jobs=n_jobs, verbose=3)(
     delayed(_parallel_eval)(
