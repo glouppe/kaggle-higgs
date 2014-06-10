@@ -10,6 +10,7 @@ from sklearn.externals.joblib import Parallel, delayed
 from utils import load_train, load_test
 from utils import find_threshold
 from utils import rescale, rebalance
+from utils import make_submission
 
 def load_predictions(pattern):
     return np.column_stack([np.load(f) for f in sorted(glob.glob(pattern))])
@@ -20,11 +21,14 @@ X, y, w, _ = load_train()
 # Tune stacker
 print "Optimize parameters in 5-CV..."
 
-from sklearn.linear_model import SGDClassifier
-Classifier = SGDClassifier
-grid = ParameterGrid({"loss": ["hinge"],
-                      "n_iter": [20, 30],
-                      "penalty": ["l2"]})
+from sklearn.ensemble import GradientBoostingClassifier
+Classifier = GradientBoostingClassifier
+grid = ParameterGrid({"n_estimators": [100],
+                     "learning_rate": [0.1],
+                     "max_depth": [3, 4, 5, 6],
+                     "max_features": [None],
+                     "min_samples_leaf": [1]})
+
 
 n_jobs = 1
 
@@ -41,7 +45,7 @@ def _parallel_eval(Classifier, params, X, y, w, n_repeat=5, verbose=1):
         _, _, _, y_fold, _, w_fold = train_test_split(X, y, w, train_size=0.5, random_state=i)
         X_fold = load_predictions("stack/*-fold%d.npy" % i)
 
-        X_train, X_valid, y_train, y_valid, w_train, w_valid = train_test_split(X_fold, y_fold, w_fold, train_size=0.5, random_state=i)
+        X_train, X_valid, y_train, y_valid, w_train, w_valid = train_test_split(X_fold, y_fold, w_fold, train_size=0.33, random_state=i)
         X_train = np.asfortranarray(X_train, dtype=np.float32)
 
         w_train = rescale(w_train)
