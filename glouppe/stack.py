@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import itertools
 import glob
+from functools import partial
 
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import ParameterGrid
@@ -22,13 +23,12 @@ X, y, w, _ = load_train()
 print "Optimize parameters in 5-CV..."
 
 from sklearn.ensemble import GradientBoostingClassifier
-Classifier = GradientBoostingClassifier
-grid = ParameterGrid({"n_estimators": [300],
-                     "learning_rate": [0.05, 0.04, 0.03],
-                     "max_depth": [1, 2, 3],
-                     "max_features": [0.3, 0.6, 1.0],
-                     "min_samples_leaf": [1]})
+from sklearn.ensemble import BaggingClassifier
+Classifier = partial(BaggingClassifier, base_estimator=GradientBoostingClassifier(n_estimators=300, learning_rate=0.04, max_depth=1, max_features=5))
+grid = ParameterGrid({"n_estimators": [100], "max_features": [5, 6, 7, 8], "n_jobs": [24]})
 
+#Classifier = GradientBoostingClassifier
+#grid = ParameterGrid({"n_estimators": [300], "max_features": [5, 6, 7, 8, 9], "learning_rate": [0.03, 0.04, 0.05], "max_depth": [1, 2, 3]})
 
 n_jobs = 1
 
@@ -116,3 +116,6 @@ print "Making submission..."
 X_test = load_predictions("stack/*-test.npy")
 
 make_submission(clf, threshold, "output-stacking.csv", X_test=X_test)
+
+import IPython; IPython.embed()
+

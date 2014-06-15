@@ -8,12 +8,7 @@ from sklearn.utils import safe_asarray, check_random_state
 def load_train(filename="data/training.csv"):
     data = pd.read_csv(filename)
     X = data.values[:, 1:-2]
-
-    y = data.Label.values
-    y_ = np.zeros(len(X))
-    y_[y == 's'] = 1.0
-    y = y_
-
+    y = (data.Label.values == 's').astype(np.float)
     sample_weight = data.Weight.values
     ids = data.EventId
 
@@ -22,11 +17,9 @@ def load_train(filename="data/training.csv"):
 def load_test(filename="data/test.csv"):
     data = pd.read_csv(filename)
     X = data.values[:, 1:]
-    y = None
-    sample_weight = np.ones(len(X))
     ids = data.EventId
 
-    return X, y, sample_weight, ids
+    return X, None, np.ones(len(X)), ids
 
 
 # Rescale weights
@@ -67,8 +60,6 @@ def find_threshold(clf, X, y, sample_weight):
     indices = np.argsort(d)
     s = 0.0
     b = 0.0
-
-    a = []
 
     for i, j in zip(indices[:-1], indices[1:]):
         if y[i] == 1.0:

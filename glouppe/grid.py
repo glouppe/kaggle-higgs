@@ -48,19 +48,45 @@ print "Optimize parameters in 5-CV..."
 #                      "max_features": [10, 15, 20, 25, 30],
 #                      "n_jobs": [24]})
 
-from sklearn.preprocessing import scale
-X = scale(X.astype(np.float32))
+from sklearn.preprocessing import StandardScaler
+tf = StandardScaler()
+X = X.astype(np.float32)
+tf.fit(X)
+X = tf.transform(X)
 
-prefix = "sgd"
-from sklearn.ensemble import BaggingClassifier
-from sklearn.linear_model import SGDClassifier
-Classifier = partial(BaggingClassifier, base_estimator=SGDClassifier(n_iter=30, alpha=0.05))
+#prefix = "sgd"
+#from sklearn.ensemble import BaggingClassifier
+#from sklearn.linear_model import SGDClassifier
+#Classifier = partial(BaggingClassifier, base_estimator=SGDClassifier(n_iter=30, alpha=0.05))
 #grid = ParameterGrid({"penalty": ["l1", "l2"], "n_iter": [30, 50], "alpha": [0.01, 0.05, 0.1]})
-grid = ParameterGrid({"n_estimators": [20], "n_jobs": [20], "bootstrap": [False, True], "max_features": [25, 27, 30]})
+#grid = ParameterGrid({"n_estimators": [20], "n_jobs": [20], "bootstrap": [False, True], "max_features": [25, 27, 30]})
+
+#prefix = "knn"
+#from sklearn.neighbors import KNeighborsClassifier
+#Classifier = KNeighborsClassifier
+#grid = ParameterGrid({"n_neighbors": [5, 10, 20, 30, 40, 50]})
+
+prefix = "mlp"
+#prefix = "bagging-mlp"
+from sklearn.neural_network import MultilayerPerceptronClassifier
+Classifier = MultilayerPerceptronClassifier
+grid = ParameterGrid({"n_hidden": [[50,50,50], [75,75,75], [100,100,100]],
+                      "shuffle": [True], 
+                      "verbose": [False],
+                      "batch_size": [100],
+                      "algorithm": ["sgd"],
+                      "max_iter": [200],
+                      "eta0": [0.0075, 0.01, 0.025],
+                      "learning_rate": ["constant"],
+                      "alpha": [0.00001]})
+#from sklearn.ensemble import BaggingClassifier
+#Classifier = partial(BaggingClassifier, base_estimator=MultilayerPerceptronClassifier(n_hidden=50, shuffle=True))
+#grid = ParameterGrid({"n_estimators": [20], "n_jobs": [20], "bootstrap": [False, True], "max_features": [25, 27, 30]})
 
 
 
-n_jobs = 1
+
+n_jobs = 24
 
 def _parallel_eval(Classifier, params, X, y, w, n_repeat=5, verbose=1):
     if verbose > 0:
@@ -85,6 +111,7 @@ def _parallel_eval(Classifier, params, X, y, w, n_repeat=5, verbose=1):
             clf = clf.fit(X_train, y_train)
 
         threshold, score, d = find_threshold(clf, X_valid, y_valid, w_valid)
+        print params, i, threshold, score
 
         thresholds.append(threshold)
         scores.append(score)
@@ -134,7 +161,7 @@ except:
 print "Save test predictions for stacking..."
 
 X_test, _, _, ids = load_test()
-X_test = scale(X_test.astype(np.float32))
+X_test = tf.transform(X_test.astype(np.float32))
 
 try:
     d = -clf.decision_function(X_test)
