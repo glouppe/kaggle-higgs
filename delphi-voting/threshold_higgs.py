@@ -29,7 +29,7 @@ def vote_background_to_signal(best_submission_loc, backup_submissions_glob, outf
 					else:
 						signal_preds[row[0]] += -1
 		d = 0
-		for e, line in enumerate(open("lm5.csv")):
+		for e, line in enumerate(open(best_submission_loc)):
 			if e == 0:
 				outfile.write( line )
 			else:
