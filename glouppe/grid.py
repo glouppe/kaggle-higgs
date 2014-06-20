@@ -17,14 +17,14 @@ X, y, w, _ = load_train()
 # Look for the best model
 print "Optimize parameters in 5-CV..."
 
-prefix = "gbrt-b"
-from sklearn.ensemble import GradientBoostingClassifier
-Classifier = GradientBoostingClassifier
-grid = ParameterGrid({"n_estimators": [500],
-                      "learning_rate": [0.1],
-                      "max_depth": [4, 5],
-                      "max_features": [23, 25, 27],
-                      "min_samples_leaf": [100, 125]})
+#prefix = "gbrt"
+#from sklearn.ensemble import GradientBoostingClassifier
+#Classifier = GradientBoostingClassifier
+#grid = ParameterGrid({"n_estimators": [500],
+#                      "learning_rate": [0.1],
+#                      "max_depth": [6],
+#                      "max_features": [None],
+#                      "min_samples_leaf": [1]})
 
 #prefix = "xgb"
 #from xg import XGBoostClassifier
@@ -48,6 +48,15 @@ grid = ParameterGrid({"n_estimators": [500],
 #                      "max_features": [10, 15, 20, 25, 30],
 #                      "n_jobs": [24]})
 
+#prefix = "extra-trees"
+#from sklearn.ensemble import ExtraTreesClassifier
+#Classifier = ExtraTreesClassifier
+#grid = ParameterGrid({"n_estimators": [500],
+#                      "max_features": [10, 15, 20, 25, 30],
+#                      "n_jobs": [24]})
+
+
+
 #from sklearn.preprocessing import StandardScaler
 #tf = StandardScaler()
 #X = X.astype(np.float32)
@@ -67,7 +76,6 @@ grid = ParameterGrid({"n_estimators": [500],
 #grid = ParameterGrid({"n_neighbors": [5, 10, 20, 30, 40, 50]})
 
 #prefix = "mlp"
-#prefix = "bagging-mlp"
 #from sklearn.neural_network import MultilayerPerceptronClassifier
 #Classifier = MultilayerPerceptronClassifier
 #grid = ParameterGrid({"n_hidden": [[50,50,50], [75,75,75], [100,100,100]],
@@ -79,11 +87,12 @@ grid = ParameterGrid({"n_estimators": [500],
 #                      "eta0": [0.0075, 0.01, 0.025],
 #                      "learning_rate": ["constant"],
 #                      "alpha": [0.00001]})
+
+#prefix = "bagging-mlp"
 #from sklearn.ensemble import BaggingClassifier
+#from sklearn.neural_network import MultilayerPerceptronClassifier
 #Classifier = partial(BaggingClassifier, base_estimator=MultilayerPerceptronClassifier(n_hidden=50, shuffle=True))
 #grid = ParameterGrid({"n_estimators": [20], "n_jobs": [20], "bootstrap": [False, True], "max_features": [25, 27, 30]})
-
-
 
 
 n_jobs = 24

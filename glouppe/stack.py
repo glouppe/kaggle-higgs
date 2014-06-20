@@ -24,11 +24,11 @@ print "Optimize parameters in 5-CV..."
 
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import BaggingClassifier
-#Classifier = partial(BaggingClassifier, base_estimator=GradientBoostingClassifier(n_estimators=300, learning_rate=0.04, max_depth=1, max_features=5))
-#grid = ParameterGrid({"n_estimators": [100], "max_features": [5, 6, 7, 8], "n_jobs": [24]})
+#Classifier = partial(BaggingClassifier, base_estimator=GradientBoostingClassifier(n_estimators=500, learning_rate=0.025, max_depth=4, max_features=None, min_samples_leaf=250))
+#grid = ParameterGrid({"n_estimators": [24], "max_features": [1.0, 0.9, 0.8], "n_jobs": [24]})
 
 Classifier = GradientBoostingClassifier
-grid = ParameterGrid({"n_estimators": [500], "max_features": [None], "learning_rate": [0.03, 0.025, 0.02], "max_depth": [4], "min_samples_leaf": [150, 200, 250, 300, 350, 400, 450, 500]})
+grid = ParameterGrid({"n_estimators": [500], "max_features": [None, 0.95, 0.9], "learning_rate": [0.0225, 0.025, 0.0275], "max_depth": [4], "min_samples_leaf": [250]})
 
 n_jobs = 24
 
